@@ -1,8 +1,26 @@
-# document-lines-export — Estrazione delle righe di un documento
+# document-lines-export
 
-`export_document_lines.py` è una GUI (tkinter) per estrarre in Excel le righe
-di un documento di ARCA Evolution (ordine, DDT, fattura, ...) scegliendo
-quali colonne includere.
+Estrazione in Excel delle righe di un documento di ARCA Evolution.
+
+## Problema
+
+Clienti e colleghi chiedono spesso le righe di un ordine, DDT o fattura in un
+formato modificabile, con colonne che le stampe standard non includono (EAN,
+prezzo netto, prezzo consigliato).
+
+## Soluzione
+
+`export_document_lines.py` (GUI tkinter) costruisce dinamicamente la query su
+`DORig` e `ARAlias` in base ai filtri e alle colonne scelte:
+
+- filtri: anno, codice documento (es. `FTV`), numero documento e codice
+  cliente, oppure il solo identificativo `Id_DOTes`, che ha la precedenza;
+- colonne disponibili: codice articolo, EAN, descrizione, unità di misura,
+  fattore di conversione, quantità, prezzo unitario, aliquota IVA, prezzo
+  lordo, netto e consigliato (dal listino con revisione 1);
+- l'opzione di corrispondenza esatta filtra sul numero documento (`NumeroDoc`);
+  se i risultati provengono da più documenti viene mostrato un avviso con
+  l'elenco.
 
 ## Utilizzo
 
@@ -10,17 +28,6 @@ quali colonne includere.
 python export_document_lines.py
 ```
 
-1. Compilare **Anno esercizio**, **Codice documento** (es. `FTV`), **Numero
-   documento** e **Codice cliente**. In alternativa compilare solo
-   l'**Identificativo** (`Id_DOTes`), che ha la precedenza sugli altri filtri.
-2. Spuntare le colonne da esportare: codice articolo, EAN, descrizione,
-   quantità, fattore di conversione, prezzo unitario, aliquota IVA, prezzo
-   lordo, netto e consigliato (dal listino con revisione 1).
-3. Premere **Estrai Dati** e scegliere dove salvare il file Excel.
-
-L'opzione di corrispondenza esatta applica il filtro sul numero documento
-(`NumeroDoc`). Se i risultati provengono da più documenti diversi, lo script
-mostra un avviso con l'elenco.
-
-Richiede il file `.env` alla radice del repository (`SERVER_DB`, `DB_ARCA`,
-`DB_USER`, `DB_PASSWORD`).
+Compilare i filtri, scegliere le colonne, premere Estrai Dati e indicare il
+file Excel di destinazione. La connessione usa il `.env` alla radice del
+repository.

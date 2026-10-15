@@ -1,34 +1,36 @@
-# supplier-invoices-export — Export massivo delle fatture passive (XML + PDF)
+# supplier-invoices-export
 
-`export_supplier_invoices.ps1` estrae dal DMS di ARCA Evolution
-(`DmsDocument`) le fatture elettroniche passive registrate in contabilità su
-un certo **conto** e in un intervallo di **date di registrazione**. Per ognuna
-salva l'XML e il PDF.
+Export massivo delle fatture elettroniche passive archiviate in ARCA Evolution,
+in formato XML e PDF.
 
-## Come funziona
+## Problema
 
-1. Cerca le registrazioni contabili (`CGMovT`/`CGMovR`) sul conto indicato e
-   i documenti DMS collegati con tag `FTE`.
-2. Decomprime il blob di ARCA (record ZIP + Deflate) e, se il file è firmato
-   (`.p7m`, anche in Base64), estrae l'XML dalla busta CAdES.
-3. Salva `<conto>_<CodiceFornitore>_<NumFattura>_<DataReg>.xml`.
-4. Per il PDF:
-   - se l'XML contiene un PDF allegato, salva quello;
-   - altrimenti genera il PDF trasformando l'XML con un foglio di stile XSL
-     (`FoglioStile.xsl`) e stampandolo con Microsoft Edge in modalità headless.
-5. Scrive `_riepilogo.csv` con l'esito di ogni documento: numero e data
-   dall'XML, coerenza tra numero ARCA e numero XML, origine del PDF, errori.
-   Include anche le registrazioni senza XML.
+Le fatture passive sono archiviate nel DMS di ARCA (`DmsDocument`) come blob
+compressi, spesso firmati (`.p7m`). Estrarle una per una per un controllo o una
+richiesta di documentazione su un conto contabile richiede molto tempo, e non
+tutte includono un PDF.
 
-## Requisiti
+## Soluzione
 
-- Windows con PowerShell 5.1 o superiore.
-- Microsoft Edge, solo per generare i PDF mancanti.
-- Un foglio di stile per la fattura elettronica salvato come `FoglioStile.xsl`
-  accanto allo script (ad esempio il foglio di stile pubblicato da
-  FatturaPA/Agenzia delle Entrate).
-- Variabili `SERVER_DB`, `DB_ARCA` (e facoltativamente `DB_USER`/`DB_PASSWORD`)
-  nel file `.env` alla radice del repository o nell'ambiente.
+`export_supplier_invoices.ps1` seleziona le registrazioni contabili
+(`CGMovT`/`CGMovR`) su un conto e in un intervallo di date di registrazione, poi
+per ogni documento DMS con tag `FTE`:
+
+1. decomprime il blob di ARCA (record ZIP con dati Deflate);
+2. se il file è firmato, anche in Base64, estrae l'XML dalla busta CAdES;
+3. salva `<conto>_<CodiceFornitore>_<NumFattura>_<DataReg>.xml`;
+4. salva il PDF allegato all'XML, se presente, altrimenti lo genera
+   trasformando l'XML con un foglio di stile XSL e stampandolo con Microsoft
+   Edge in modalità headless;
+5. scrive `_riepilogo.csv` con l'esito di ogni documento: numero, data e totale
+   dall'XML, coerenza tra numero in ARCA e numero nell'XML, origine del PDF,
+   errori, registrazioni senza XML.
+
+Requisiti: Windows con PowerShell 5.1 o successivo; Microsoft Edge, solo per
+generare i PDF mancanti; un foglio di stile per la fattura elettronica salvato
+come `FoglioStile.xsl` accanto allo script (ad esempio quello pubblicato da
+FatturaPA); variabili `SERVER_DB` e `DB_ARCA` (ed eventualmente `DB_USER`,
+`DB_PASSWORD`) nel `.env` alla radice del repository o nell'ambiente.
 
 ## Utilizzo
 
@@ -37,5 +39,5 @@ salva l'XML e il PDF.
 .\export_supplier_invoices.ps1 -Conto 00000000000 -DataInizio 2026-01-01 -DataFine 2026-12-31
 ```
 
-Senza date si usa l'anno in corso. I file vengono salvati nella cartella
+Senza date viene usato l'anno in corso. I file vengono salvati in
 `Fatture_<conto>_<inizio>_<fine>` accanto allo script.

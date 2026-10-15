@@ -1,75 +1,75 @@
 # arca-evolution-toolkit
 
-Raccolta di query SQL e script Python/PowerShell per leggere e scrivere dati sul
-database del gestionale **ARCA Evolution** (SQL Server): estrazioni, import da
-WooCommerce, aggiornamento di anagrafiche, listini e ubicazioni, export di
-documenti e fatture.
+Query SQL e script Python/PowerShell per leggere e scrivere dati sul database
+del gestionale ARCA Evolution (SQL Server).
 
-## Che problema risolve
+## Contesto
 
-ARCA Evolution copre bene la gestione quotidiana, ma molte operazioni massive
-(allineare centinaia di anagrafiche con il sito B2B, aggiornare un listino da un
-Excel, estrarre in blocco le fatture passive con i PDF, preparare i dati per un
-catalogo) richiederebbero ore di lavoro manuale dall'interfaccia. Questi
-strumenti le automatizzano lavorando direttamente sulle tabelle standard di
-ARCA (`CF`, `AR`, `DOTes`, `DORig`, `LSArticolo`, `MGUbicazione`, ...).
+Strumenti sviluppati per le esigenze di un'azienda di distribuzione che usa
+ARCA Evolution, pubblicati in forma anonimizzata con l'autorizzazione
+dell'azienda.
 
-## Come funziona
+## Problema
 
-- **Le query** in `queries/` si eseguono in SSMS e hanno i parametri dichiarati
-  in testa (`DECLARE`).
-- **Gli script di import** non scrivono mai direttamente sul database:
-  leggono i dati sorgente (Excel o CSV), li confrontano con ARCA e **generano un
-  file `.sql`** da rivedere ed eseguire manualmente in SSMS.
-- **Gli script di export** leggono da ARCA e producono file Excel, XML o PDF.
+Diverse operazioni ricorrenti sul gestionale, se fatte dall'interfaccia,
+richiedono molto lavoro manuale: allineare le anagrafiche clienti con il sito
+B2B, aggiornare un listino a partire da un Excel, esportare in blocco le
+fatture passive con i relativi PDF, preparare i dati di un catalogo prodotti.
 
-## Struttura delle cartelle
+## Soluzione
+
+Gli strumenti lavorano direttamente sulle tabelle standard di ARCA (`CF`, `AR`,
+`DOTes`, `DORig`, `LSArticolo`, `MGUbicazione`, ...) e seguono tre schemi:
+
+- query in `queries/`, da eseguire in SSMS, con i parametri dichiarati in testa;
+- script di import che leggono Excel o CSV, li confrontano con ARCA e generano
+  un file `.sql` da rivedere ed eseguire manualmente, senza scrivere
+  direttamente sul database;
+- script di export che leggono da ARCA e producono Excel, XML o PDF.
+
+## Struttura
 
 ```
 arca-evolution-toolkit/
-├── queries/                              query SQL pronte per SSMS
+├── queries/                              query SQL per SSMS
 │   ├── article_sales_traceability.sql    tracciabilità delle vendite di un articolo
 │   ├── converted_orders.sql              ordini e documenti in cui sono stati evasi
-│   ├── price_lists_pivot.sql             tutti i listini affiancati per articolo
-│   └── shipments_report.sql              report spedizioni (DDT) con pesi e importi
+│   ├── price_lists_pivot.sql             listini affiancati per articolo
+│   └── shipments_report.sql              spedizioni (DDT) con pesi e importi
 ├── data-import/
-│   ├── woocommerce-customer-categories/  confronto categorie clienti WooCommerce ↔ ARCA (CSV)
-│   ├── woocommerce-role-mapping/         mappatura fuzzy dei ruoli WooCommerce su CFGruppo (Excel)
+│   ├── woocommerce-customer-categories/  confronto categorie clienti WooCommerce / ARCA
+│   ├── woocommerce-role-mapping/         mappatura dei ruoli WooCommerce su CFGruppo
 │   ├── woocommerce-product-tags/         import dei tag prodotto WooCommerce
-│   ├── warehouse-locations/              associazione articoli ↔ ubicazioni di magazzino
-│   └── price-list-import/                aggiornamento di un listino ARCA da Excel (GUI)
+│   ├── warehouse-locations/              associazione articoli / ubicazioni
+│   └── price-list-import/                aggiornamento di un listino da Excel
 └── data-export/
-    ├── supplier-invoices-export/         export massivo delle fatture passive XML + PDF (PowerShell)
-    ├── document-lines-export/            estrazione delle righe di un documento in Excel (GUI)
-    └── product-catalog-export/           generazione del catalogo prodotti in Excel
+    ├── supplier-invoices-export/         export delle fatture passive XML + PDF
+    ├── document-lines-export/            righe di un documento in Excel
+    └── product-catalog-export/           catalogo prodotti in Excel
 ```
 
-Ogni sottocartella ha un proprio `README.md` con i dettagli d'uso.
+Ogni sottocartella ha un README con i dettagli d'uso.
 
-## Tecnologie usate
+## Tecnologie
 
-- ARCA Evolution su Microsoft SQL Server (T-SQL, query dinamiche con `sp_executesql`)
+- ARCA Evolution su Microsoft SQL Server (T-SQL, SQL dinamico con `sp_executesql`)
 - Python 3.10+: pandas, openpyxl, pyodbc, SQLAlchemy, tkinter, python-dotenv
-- PowerShell 5.1 (ADO.NET, `System.Security.Cryptography.Pkcs` per i file `.p7m`)
+- PowerShell 5.1: ADO.NET, `System.Security.Cryptography.Pkcs` per i file `.p7m`
 
 ## Configurazione
 
-1. Installare le dipendenze Python:
+1. Installare il driver ODBC per SQL Server e le dipendenze:
    ```bash
    pip install -r requirements.txt
    ```
-2. Installare il driver ODBC per SQL Server.
-3. Copiare `.env.example` in `.env` e compilare i valori:
+2. Copiare `.env.example` in `.env` e impostare:
 
-   | Variabile     | Significato                                                  |
-   |---------------|--------------------------------------------------------------|
-   | `SERVER_DB`   | server e istanza SQL Server (es. `server\ISTANZA`)           |
-   | `DB_ARCA`     | nome del database di ARCA                                    |
-   | `DB_USER`     | utente SQL Server; se vuoto si usa l'autenticazione Windows  |
-   | `DB_PASSWORD` | password dell'utente SQL Server                              |
+   | Variabile     | Significato                                                 |
+   |---------------|-------------------------------------------------------------|
+   | `SERVER_DB`   | server e istanza SQL Server                                 |
+   | `DB_ARCA`     | nome del database di ARCA                                   |
+   | `DB_USER`     | utente SQL Server; se vuoto si usa l'autenticazione Windows |
+   | `DB_PASSWORD` | password dell'utente SQL Server                             |
 
-   Tutti gli script Python leggono il `.env` dalla radice del repository. Lo
-   script PowerShell lo legge da solo, se il file è presente.
-
-> ⚠️ Il file `.env` e tutti i file di dati (Excel, CSV, XML, PDF) sono esclusi
-> da `.gitignore`: non vanno mai pubblicati.
+Gli script Python leggono il `.env` dalla radice del repository; lo script
+PowerShell lo legge da solo, se presente. Il file `.env` non è versionato.

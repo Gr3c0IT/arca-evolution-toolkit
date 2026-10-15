@@ -1,47 +1,46 @@
-# product-catalog-export — Catalogo prodotti da ARCA + dati manuali
+# product-catalog-export
 
-`product_catalog.py` costruisce il file Excel del catalogo prodotti unendo:
+Generazione del file dati del catalogo prodotti unendo le informazioni di ARCA
+Evolution con dati compilati manualmente.
 
-- i **dati presenti in ARCA**: descrizione, categoria, peso, EAN del pezzo e del
-  cartone, pezzi per cartone, cartoni per strato e per pallet, immagine,
-  prezzo di rivendita suggerito;
-- i **dati manuali** che il gestionale non contiene: descrizione marketing e
-  flag `TOP_SELLER`, `NOVITA`, `TREND`, `GLUTEN_FREE`, `PROTEICO`, `VEGANO`,
-  `HALAL`. Sono conservati nell'archivio `catalogo_unificato.xlsx`.
+## Problema
 
-## File
+Il catalogo richiede sia dati presenti nel gestionale (descrizioni, EAN,
+imballi, prezzi) sia informazioni di marketing che ARCA non contiene
+(descrizione commerciale, flag come novità o senza glutine). Raccoglierli a
+ogni nuova edizione del catalogo era un lavoro manuale ripetuto.
 
-| File | Descrizione |
-|------|-------------|
-| `product_catalog.py` | script principale |
-| `catalogo_unificato.xlsx` | archivio storico dei prodotti con i dati manuali |
-| file dei codici (es. `codici.xlsx`) | codici articolo del nuovo catalogo, nella prima colonna |
-| `da_compilare.xlsx` | generato: articoli con dati manuali mancanti, da far compilare |
-| `catalogo_output.xlsx` | generato: catalogo finale |
+## Soluzione
 
-## Flusso di lavoro
+`product_catalog.py` mantiene un archivio dei dati manuali
+(`catalogo_unificato.xlsx`) e lo combina con i dati estratti da ARCA:
 
-1. **Genera il catalogo**
+- da ARCA: descrizione, categoria, peso, EAN del pezzo e del cartone, pezzi per
+  cartone, cartoni per strato e per pallet, immagine, prezzo di rivendita
+  suggerito;
+- dall'archivio: descrizione commerciale e flag `TOP_SELLER`, `NOVITA`,
+  `TREND`, `GLUTEN_FREE`, `PROTEICO`, `VEGANO`, `HALAL`.
+
+I flag accettano solo `TRUE`/`FALSE` (o `VERO`/`FALSO`); altri valori sono
+considerati mancanti. Gli articoli con dati manuali mancanti vengono esportati
+in `da_compilare.xlsx`.
+
+L'output ha la struttura attesa da `automazioni-ufficio-python/pptx-catalog`,
+che lo impagina in PowerPoint.
+
+## Utilizzo
+
+1. Generare il catalogo dai codici articolo (prima colonna del file):
    ```bash
    python product_catalog.py --genera codici.xlsx
    ```
-   Legge i codici, recupera i dati da ARCA, aggiunge i dati manuali
-   dall'archivio e produce `catalogo_output.xlsx` e `da_compilare.xlsx`.
-2. **Compilazione manuale**: chi si occupa del marketing compila
-   `da_compilare.xlsx` e lo restituisce.
-3. **Aggiorna l'archivio**
+   Produce `catalogo_output.xlsx` e `da_compilare.xlsx`.
+2. Far compilare `da_compilare.xlsx` e aggiornare l'archivio:
    ```bash
    python product_catalog.py --aggiorna da_compilare.xlsx
    ```
-   Aggiorna `catalogo_unificato.xlsx` con i dati manuali e con quelli correnti
-   di ARCA.
-4. Rieseguire `--genera` per ottenere il catalogo definitivo. Con
+   L'archivio viene aggiornato con i dati manuali e con quelli correnti di ARCA.
+3. Rieseguire `--genera` per il catalogo definitivo. Con
    `--genera catalogo_unificato.xlsx` si rigenera il catalogo completo.
 
-I campi booleani accettano solo `TRUE`/`FALSE` (o `VERO`/`FALSO`); qualsiasi
-altro valore è considerato mancante.
-
-L'output è pensato per `automazioni-ufficio-python/pptx-catalog`, che lo
-impagina in PowerPoint.
-
-Richiede il file `.env` alla radice del repository.
+La connessione usa il `.env` alla radice del repository.

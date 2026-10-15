@@ -1,30 +1,30 @@
-# price-list-import — Aggiornamento di un listino ARCA da Excel
+# price-list-import
 
-`price_list_builder.py` è una piccola GUI (tkinter) che prende il modello di
-listino esportato da ARCA Evolution e ci scrive i nuovi prezzi presi da un
-Excel. Il file risultante si reimporta in ARCA.
+Aggiornamento dei prezzi di un listino ARCA Evolution a partire da un file
+Excel.
 
-## Preparazione dei file
+## Problema
 
-1. **Listino originale da ARCA**: *Listini → Listini Standard → Manutenzione →
-   Esporta Listino*, poi selezionare il listino ed esportarlo. Se il listino
-   non esiste, va prima creato in ARCA.
-2. **Listino con i nuovi prezzi**: un Excel con **un solo foglio**, **senza
-   intestazione** e con due colonne: codice articolo e prezzo. Il prezzo può
-   essere numerico o testo, ad esempio `€ 1,50`.
+I nuovi prezzi vengono preparati in un Excel con codice articolo e prezzo, ma
+ARCA importa i listini solo nel proprio modello di esportazione. Riportare i
+prezzi a mano nel modello richiede tempo ed è soggetto a errori.
+
+## Soluzione
+
+`price_list_builder.py` (GUI tkinter) abbina i codici articolo dei due file,
+ignorando gli spazi, e scrive i nuovi prezzi nella colonna E del modello
+esportato da ARCA. Accetta prezzi numerici o testuali (es. `€ 1,50`). Mostra
+un'anteprima delle modifiche e apre il file temporaneo con il programma
+predefinito (Windows, macOS, Linux) prima di salvare il risultato. Non richiede
+connessione al database.
 
 ## Utilizzo
 
-```bash
-python price_list_builder.py
-```
-
-1. Selezionare il listino originale e il listino Excel.
-2. Premere **Visualizza Anteprima**: lo script abbina i codici, ignorando gli
-   spazi, e scrive i prezzi nella colonna E. Poi apre il file temporaneo
-   (`temporaneo.xlsx`) con il programma predefinito, su Windows, macOS o Linux.
-3. Se è tutto corretto, premere **Esegui la modifica**: viene creato
-   `Listino_pronto.xlsx` nella cartella del listino originale, da importare in
-   ARCA.
-
-Non richiede connessione al database.
+1. In ARCA: Listini → Listini Standard → Manutenzione → Esporta Listino,
+   selezionando il listino da aggiornare (deve già esistere).
+2. Preparare l'Excel dei nuovi prezzi: un solo foglio, nessuna intestazione,
+   colonne codice articolo e prezzo.
+3. Avviare `python price_list_builder.py` e selezionare i due file.
+4. Visualizza Anteprima genera `temporaneo.xlsx` e lo apre per il controllo.
+5. Esegui la modifica salva `Listino_pronto.xlsx` nella cartella del listino
+   originale, pronto per l'import in ARCA.
